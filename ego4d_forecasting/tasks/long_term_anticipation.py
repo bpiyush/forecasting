@@ -199,7 +199,7 @@ class LongTermAnticipationTask(VideoTask):
 
         return step_result
 
-    def training_epoch_end(self, outputs):
+    def on_training_epoch_end(self, outputs):
         if self.cfg.BN.USE_PRECISE_STATS and len(get_bn_modules(self.model)) > 0:
             misc.calculate_and_update_precise_bn(
                 self.train_loader, self.model, self.cfg.BN.NUM_BATCHES_PRECISE
@@ -239,7 +239,7 @@ class LongTermAnticipationTask(VideoTask):
 
         return step_result
 
-    def validation_epoch_end(self, outputs):
+    def on_validation_epoch_end(self, outputs):
         keys = outputs[0].keys()
         for key in keys:
             metric = torch.tensor([x[key] for x in outputs]).mean()
@@ -264,7 +264,7 @@ class LongTermAnticipationTask(VideoTask):
             'noun_preds': preds[1],
         }
 
-    def test_epoch_end(self, outputs):
+    def on_test_epoch_end(self, outputs):
 
         test_outputs = {}
         for key in ['verb_preds', 'noun_preds']:

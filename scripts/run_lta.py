@@ -14,7 +14,8 @@ from ego4d_forecasting.utils.misc import gpu_mem_usage
 from ego4d_forecasting.utils.parser import load_config, parse_args
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
-from pytorch_lightning.plugins import DDPPlugin
+# from pytorch_lightning.plugins import DDPPlugin
+from pytorch_lightning.strategies import DDPStrategy
 
 import copy 
 
@@ -224,17 +225,21 @@ def main(cfg):
         args = {"logger": False, "callbacks": checkpoint_callback}
 
     trainer = Trainer(
-        gpus=cfg.NUM_GPUS,
+        # gpus=cfg.NUM_GPUS,
+        devices=cfg.NUM_GPUS,
         num_nodes=cfg.NUM_SHARDS,
-        accelerator=cfg.SOLVER.ACCELERATOR,
+        # accelerator=cfg.SOLVER.ACCELERATOR,
+        accelerator='gpu',
         max_epochs=cfg.SOLVER.MAX_EPOCH,
         num_sanity_val_steps=3,
         benchmark=True,
-        log_gpu_memory="min_max",
-        replace_sampler_ddp=False,
+        # log_gpu_memory="min_max",
+        # replace_sampler_ddp=False,
         fast_dev_run=cfg.FAST_DEV_RUN,
         default_root_dir=cfg.OUTPUT_DIR,
-        plugins=DDPPlugin(find_unused_parameters=False),
+        # plugins=DDPPlugin(find_unused_parameters=False),
+        # strategy="ddp",
+        strategy=DDPStrategy(find_unused_parameters=False),
         **args,
     )
 
