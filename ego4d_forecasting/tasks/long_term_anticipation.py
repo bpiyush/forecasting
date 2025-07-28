@@ -155,6 +155,11 @@ class LongTermAnticipationTask(VideoTask):
     def __init__(self, cfg):
         super().__init__(cfg)
         self.checkpoint_metric = f"val_0_ED_{cfg.FORECASTING.NUM_ACTIONS_TO_PREDICT-1}"
+        
+        # To store the step outputs for training and validation
+        self.train_step_outputs = []
+        self.validation_step_outputs = []
+        self.test_step_outputs = []
 
     def forward(self, inputs, tgts):
         return self.model(inputs, tgts=tgts)
@@ -196,10 +201,14 @@ class LongTermAnticipationTask(VideoTask):
 
         step_result["loss"] = loss
         step_result["train_loss"] = loss.item()
+        
+        # Store the step outputs for training
+        self.train_step_outputs.append(step_result)
 
         return step_result
 
-    def on_training_epoch_end(self, outputs):
+    def on_training_epoch_end(self):
+        outputs = self.train_step_outputs
         if self.cfg.BN.USE_PRECISE_STATS and len(get_bn_modules(self.model)) > 0:
             misc.calculate_and_update_precise_bn(
                 self.train_loader, self.model, self.cfg.BN.NUM_BATCHES_PRECISE
@@ -210,6 +219,9 @@ class LongTermAnticipationTask(VideoTask):
         for key in keys:
             metric = torch.tensor([x[key] for x in outputs]).mean()
             self.log(key, metric)
+        
+        # Clear the step outputs for training
+        self.train_step_outputs.clear()
 
     def validation_step(self, batch, batch_idx):
         input, forecast_labels, _, _, label_clip_times = (
@@ -237,13 +249,20 @@ class LongTermAnticipationTask(VideoTask):
             }
             step_result.update(results)
 
+        # Store the step outputs for validation
+        self.validation_step_outputs.append(step_result)
+
         return step_result
 
-    def on_validation_epoch_end(self, outputs):
+    def on_validation_epoch_end(self):
+        outputs = self.validation_step_outputs
         keys = outputs[0].keys()
         for key in keys:
             metric = torch.tensor([x[key] for x in outputs]).mean()
             self.log(key, metric)
+
+        # Clear the step outputs for validation
+        self.validation_step_outputs.clear()
 
     def test_step(self, batch, batch_idx):
         input, forecast_labels, _, last_clip_ids, label_clip_times = (
@@ -258,14 +277,19 @@ class LongTermAnticipationTask(VideoTask):
         # The list is for each label type (e.g. [<verb_tensor>, <noun_tensor>])
         preds = self.model.generate(input, k=k)  # [(B, K, Z)]
         
-        return {
+        output = {
             'last_clip_ids': last_clip_ids,
             'verb_preds': preds[0],
             'noun_preds': preds[1],
         }
+        
+        # Store the step outputs for test
+        self.test_step_outputs.append(output)
+        
+        return output
 
-    def on_test_epoch_end(self, outputs):
-
+    def on_test_epoch_end(self):
+        outputs = self.test_step_outputs
         test_outputs = {}
         for key in ['verb_preds', 'noun_preds']:
             preds = torch.cat([x[key] for x in outputs], 0)
@@ -285,5 +309,8 @@ class LongTermAnticipationTask(VideoTask):
                     'noun': test_outputs['noun_preds'][idx].cpu().tolist(),
                 }       
             json.dump(pred_dict, open('outputs.json', 'w'))
+        
+        # Clear the step outputs for test
+        self.test_step_outputs.clear()
 
 

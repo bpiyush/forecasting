@@ -29,7 +29,8 @@ mkdir -p ${WORK_DIR}
 
 
 DATA_ROOT=/scratch/shared/beegfs/piyush/datasets/Ego4D-HCap
-EGO4D_ANNOTS=${DATA_ROOT}/long_term_anticipation/annotations/
+# EGO4D_ANNOTS=${DATA_ROOT}/long_term_anticipation/annotations/
+EGO4D_ANNOTS=${DATA_ROOT}/long_term_anticipation/annotations_debug/
 EGO4D_VIDEOS=${DATA_ROOT}/clips_360p/
 
 # To run on dev machine: Single node configuration with 4 GPUs
