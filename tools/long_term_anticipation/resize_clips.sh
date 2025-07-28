@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=resize_ego4d_clips
-#SBATCH --array=0-1720%200
+#SBATCH --array=0-270%10
 #SBATCH --output=slurm/log_%A_%a.out
 #SBATCH --error=slurm/log_%A_%a.err
 #SBATCH --gres gpu:1
@@ -24,8 +24,19 @@ readarray -d '' CLIPS < <(find ${EGO4D_CLIP_DIR} -name "*.mp4" -print0)
 IFS=$'\n' CLIPS=($(sort <<<"${CLIPS[*]}"))
 unset IFS
 
-CLIP=${CLIPS[${SLURM_ARRAY_TASK_ID}]}
+# Calculate the actual clip index by adding the starting offset
+CLIP_INDEX=$((SLURM_ARRAY_TASK_ID + 1730))
+
+# Check if the index is valid
+if [ ${CLIP_INDEX} -ge ${#CLIPS[@]} ]; then
+    echo "Error: Clip index ${CLIP_INDEX} is out of range. Total clips: ${#CLIPS[@]}"
+    exit 1
+fi
+
+CLIP=${CLIPS[${CLIP_INDEX}]}
 FILENAME=`basename $CLIP`
+
+echo "Processing clip ${CLIP_INDEX}: ${FILENAME}"
 
 ffmpeg -y -i $CLIP \
 	-c:v libx264 \
