@@ -10,14 +10,14 @@
 #SBATCH --mem=10GB
 #SBATCH --time=1:00:00
 #SBATCH --signal=USR1@600
-#SBATCH --partition=<slurm partition>
+#SBATCH --partition=gpu
 #SBATCH --requeue
 
 source ~/.bashrc
-cd /path/to/LTA/repo
+cd /users/piyush/projects/forecasting
 
-EGO4D_CLIP_DIR=data/long_term_anticipation/clips_hq/
-TARGET_DIR=data/long_term_anticipation/clips/
+EGO4D_CLIP_DIR=/scratch/shared/beegfs/shared-datasets/EGO4D/ego4d_data_v1/clips/
+TARGET_DIR=/scratch/shared/beegfs/piyush/datasets/Ego4D-HCap/clips_360p/
 mkdir -p ${TARGET_DIR}
 
 readarray -d '' CLIPS < <(find ${EGO4D_CLIP_DIR} -name "*.mp4" -print0)

@@ -1,6 +1,6 @@
-torch==1.9.0
-torchvision==0.10.0
-pytorchvideo==0.1.5
+# torch==1.9.0
+# torchvision==0.10.0
+# pytorchvideo==0.1.5
 pytorch-lightning==1.5.6
 editdistance==0.6.0
 scikit-learn==0.24.2
@@ -13,3 +13,5 @@ lmdb==1.2.1
 imutils==0.5.4
 submitit==1.3.3
 pandas==1.3.5
+pydeprecate==0.3.2
+torchmetrics==1.5.2
