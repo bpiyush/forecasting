@@ -159,7 +159,10 @@ class TransformerAggregator(nn.Module):
         num_layers = cfg.MODEL.TRANSFORMER_ENCODER_LAYERS
         # dim_in = cfg.MODEL.MULTI_INPUT_FEATURES
         # NOTE: hardcoded for now
-        dim_in = 3584
+        if cfg.MODEL.ARCH == "slowfast_lift":
+            dim_in = 3584
+        else:
+            dim_in = 2048
         self.encoder = nn.TransformerEncoder(
             nn.TransformerEncoderLayer(dim_in, num_heads),
             num_layers,
@@ -178,7 +181,10 @@ class TransformerAggregator(nn.Module):
     def out_dim(cfg):
         # return cfg.MODEL.MULTI_INPUT_FEATURES 
         # NOTE: hardcoded for now
-        return 3584
+        if cfg.MODEL.ARCH == "slowfast_lift":
+            return 3584
+        else:
+            return 2048
 
 #--------------------------------------------------------------------#
 

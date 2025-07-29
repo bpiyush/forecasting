@@ -40,7 +40,7 @@ CLUSTER_ARGS="NUM_GPUS 4 TRAIN.BATCH_SIZE 16 TEST.BATCH_SIZE 16 DATA_LOADER.NUM_
 # CLUSTER_ARGS="NUM_GPUS 1 TRAIN.BATCH_SIZE 8 TEST.BATCH_SIZE 8 DATA_LOADER.NUM_WORKERS 0"
 
 # CONFIG="configs/Ego4dLTA/MULTISLOWFAST_8x8_R101.yaml"
-CONFIG="configs/Ego4dLTA/MULTISLOWFASTLIFT_8x8_R101.yaml"
+CONFIG="configs/Ego4dLTA/MULTISLOWFAST_8x8_R101.yaml"
 
 # SlowFast-Transformer
 BACKBONE_WTS=${DATA_ROOT}/long_term_anticipation/lta_models/pretrained_models/long_term_anticipation/ego4d_slowfast8x8.ckpt
