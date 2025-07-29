@@ -73,7 +73,7 @@ MODEL:
   MODEL_NAME: ForecastingEncoderDecoder
   LOSS_FUNC: cross_entropy
   DROPOUT_RATE: 0.5
-  MULTI_INPUT_FEATURES: 3584
+  MULTI_INPUT_FEATURES: 2048
 TEST:
   ENABLE: True
   DATASET: Ego4dLongTermAnticipation
