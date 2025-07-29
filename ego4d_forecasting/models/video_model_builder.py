@@ -16,6 +16,7 @@ import math
 from functools import reduce
 import operator
 import numpy 
+import einops
 
 from functools import partial
 from torch.nn.init import trunc_normal_
@@ -67,6 +68,13 @@ _TEMPORAL_KERNEL_BASIS = {
         [[3], [3]],  # res4 temporal kernel for slow and fast pathway.
         [[3], [3]],  # res5 temporal kernel for slow and fast pathway.
     ],
+    "slowfast_lift": [
+        [[1], [5]],  # conv1 temporal kernel for slow and fast pathway.
+        [[1], [3]],  # res2 temporal kernel for slow and fast pathway.
+        [[1], [3]],  # res3 temporal kernel for slow and fast pathway.
+        [[3], [3]],  # res4 temporal kernel for slow and fast pathway.
+        [[3], [3]],  # res5 temporal kernel for slow and fast pathway.
+    ],
 }
 
 _POOL1 = {
@@ -76,6 +84,7 @@ _POOL1 = {
     "i3d_nopool": [[1, 1, 1]],
     "slow": [[1, 1, 1]],
     "slowfast": [[1, 1, 1], [1, 1, 1]],
+    "slowfast_lift": [[1, 1, 1], [1, 1, 1]],
     "mvit": [[]]
 }
 
@@ -396,6 +405,55 @@ class SlowFast(nn.Module):
             else:
                 x = head(x)
         return x
+
+
+from ego4d_forecasting.models.lift import LiFT
+MODEL_REGISTRY.register()
+class SlowFastWithLiFT(SlowFast):
+    """
+    Concatenate the LiFT features with the SlowFast features.
+    """
+
+    def __init__(self, cfg, with_head=True):
+        super().__init__(cfg, with_head=with_head)
+        # NOTE: hardcoded for now
+        self.lift = LiFT()
+
+    def forward_slowfast(self, x, bboxes=None):
+        x = self.s1(x)
+        x = self.s1_fuse(x)
+        x = self.s2(x)
+        x = self.s2_fuse(x)
+        for pathway in range(self.num_pathways):
+            pool = getattr(self, "pathway{}_pool".format(pathway))
+            x[pathway] = pool(x[pathway])
+        x = self.s3(x)
+        x = self.s3_fuse(x)
+        x = self.s4(x)
+        x = self.s4_fuse(x)
+        x = self.s5(x)
+
+        if hasattr(self, "head_name"):
+            head = getattr(self, self.head_name)
+            if self.enable_detection:
+                x = head(x, bboxes)
+            else:
+                x = head(x)
+        return x
+
+    def forward(self, x, bboxes=None):
+        # First, compute LiFT features since 
+        z_lift_slow = self.lift(einops.rearrange(x[0], "b c t h w -> b t c h w"))
+        z_lift_fast = self.lift(einops.rearrange(x[1], "b c t h w -> b t c h w"))
+        z_lift = torch.cat([z_lift_slow, z_lift_fast], dim=-1)
+
+        # Compute slowfast features
+        z_slowfast = self.forward_slowfast(x, bboxes)
+
+        # Concatenate the features
+        z = torch.cat([z_slowfast, z_lift], dim=-1)
+
+        return z
 
 
 @MODEL_REGISTRY.register()

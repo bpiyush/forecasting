@@ -23,7 +23,8 @@ function run(){
 
 WORK_DIR=$1
 if [ -z "${WORK_DIR}" ]; then
-    WORK_DIR=/work/piyush/experiments/ego4d_forecasting/
+    # WORK_DIR=/work/piyush/experiments/ego4d_forecasting/
+    WORK_DIR=/work/piyush/experiments/ego4d_forecasting_lift/
 fi
 mkdir -p ${WORK_DIR}
 
@@ -35,11 +36,16 @@ EGO4D_VIDEOS=${DATA_ROOT}/clips_360p/
 
 # To run on dev machine: Single node configuration with 4 GPUs
 CLUSTER_ARGS="NUM_GPUS 4 TRAIN.BATCH_SIZE 8 TEST.BATCH_SIZE 8"
+# Debug with single GPU and no workers (to use ipdb)
+# CLUSTER_ARGS="NUM_GPUS 1 TRAIN.BATCH_SIZE 8 TEST.BATCH_SIZE 8 DATA_LOADER.NUM_WORKERS 0"
+
+# CONFIG="configs/Ego4dLTA/MULTISLOWFAST_8x8_R101.yaml"
+CONFIG="configs/Ego4dLTA/MULTISLOWFASTLIFT_8x8_R101.yaml"
 
 # SlowFast-Transformer
 BACKBONE_WTS=${DATA_ROOT}/long_term_anticipation/lta_models/pretrained_models/long_term_anticipation/ego4d_slowfast8x8.ckpt
 run slowfast_trf \
-    configs/Ego4dLTA/MULTISLOWFAST_8x8_R101.yaml \
+    ${CONFIG} \
     FORECASTING.AGGREGATOR TransformerAggregator \
     FORECASTING.DECODER MultiHeadDecoder \
     FORECASTING.NUM_INPUT_CLIPS 4 \

@@ -193,7 +193,11 @@ def main(cfg):
 
             # Ensure only head key is missing.w
             assert len(unexpected_keys) == 0
-            assert all(["head" in x for x in missing_keys])
+            if cfg.MODEL.ARCH != "slowfast_lift":
+                assert all(["head" in x for x in missing_keys])
+            else:
+                # Need to ignore the lift keys also
+                assert all(["head" in x or "lift" in x for x in missing_keys])
 
             for key in missing_keys:
                 logger.info(f"Could not load {key} weights")

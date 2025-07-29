@@ -20,7 +20,7 @@ import torch.nn as nn
 from functools import reduce
 from operator import mul
 from .head_helper import MultiTaskHead, MultiTaskMViTHead
-from .video_model_builder import SlowFast, _POOL1, MViT
+from .video_model_builder import SlowFast, _POOL1, MViT, SlowFastWithLiFT
 from .build import MODEL_REGISTRY
 
 
@@ -227,6 +227,8 @@ class ForecastingEncoderDecoder(nn.Module):
 
         if cfg.MODEL.ARCH == "mvit":
             self.backbone = MViT(backbone_config, with_head=True)
+        elif cfg.MODEL.ARCH == "slowfast_lift":
+            self.backbone = SlowFastWithLiFT(backbone_config, with_head=True)
         else:
             self.backbone = SlowFast(backbone_config, with_head=True)
         # replace with:

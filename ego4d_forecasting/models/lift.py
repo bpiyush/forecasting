@@ -658,7 +658,7 @@ class PositionalEncoding(nn.Module):
         pe[:, 0::2] = torch.sin(position * div_term)
         pe[:, 1::2] = torch.cos(position * div_term)
         pe = pe.unsqueeze(0)
-        self.register_buffer('pe', pe)
+        self.register_parameter('pe', nn.Parameter(pe, requires_grad=False))
 
     def forward(self, x):
         t = x.size(1)
@@ -732,8 +732,8 @@ class DualCLSTransformer(nn.Module):
         x = self.pos_encoder(x)
         
         # Expand CLS tokens to batch size
-        cls_s = self.cls_static.expand(batch_size, -1, -1)
-        cls_d = self.cls_dynamic.expand(batch_size, -1, -1)
+        cls_s = self.cls_static.expand(batch_size, -1, -1).clone()
+        cls_d = self.cls_dynamic.expand(batch_size, -1, -1).clone()
         
         # Concatenate CLS tokens with input sequence
         # [batch_size, 2+seq_len, hidden_dim]

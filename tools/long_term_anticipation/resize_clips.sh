@@ -25,7 +25,7 @@ IFS=$'\n' CLIPS=($(sort <<<"${CLIPS[*]}"))
 unset IFS
 
 # Calculate the actual clip index by adding the starting offset
-CLIP_INDEX=$((SLURM_ARRAY_TASK_ID + 9666))
+CLIP_INDEX=$((SLURM_ARRAY_TASK_ID + 12000))
 
 # Check if the index is valid
 if [ ${CLIP_INDEX} -ge ${#CLIPS[@]} ]; then

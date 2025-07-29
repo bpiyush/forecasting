@@ -77,6 +77,7 @@ _POOL1 = {
     "slow": [[1, 1, 1]],
     "slowfast": [[1, 1, 1], [1, 1, 1]],
     "x3d": [[1, 1, 1]],
+    "slowfast_lift": [[1, 1, 1], [1, 1, 1]],
 }
 
 @MODEL_REGISTRY.register()
