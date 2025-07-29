@@ -59,6 +59,13 @@ process_gpu_clips() {
         
         local clip=${CLIPS[${clip_index}]}
         local filename=$(basename "$clip")
+        local target_file="${TARGET_DIR}/${filename}"
+        
+        # Check if the resized file already exists
+        if [ -f "$target_file" ]; then
+            echo "GPU $gpu_id: Skipping clip ${clip_index}: ${filename} (already exists)"
+            continue
+        fi
         
         echo "GPU $gpu_id: Processing clip ${clip_index}: ${filename}"
         
@@ -66,7 +73,7 @@ process_gpu_clips() {
             -c:v libx264 \
             -crf 28 \
             -vf "scale=320:320:force_original_aspect_ratio=increase,pad='iw+mod(iw,2)':'ih+mod(ih,2)'" \
-            -an "${TARGET_DIR}/${filename}"
+            -an "$target_file"
     done
     
     echo "GPU $gpu_id: Completed processing"
