@@ -1540,12 +1540,58 @@ def prepare_model_lift(
     return model
 
 
-if __name__ == "__main__":
-    # Load the LIFT model
-    lift = prepare_model_lift()
+from ego4d_forecasting.models.dinov2 import DINOv2ForVideo
+class LiFT(nn.Module):
+    def __init__(self, base_model="vit_small_patch14_reg4_dinov2.lvd142m"):
+        super().__init__()
+        
+        # Load the base image model
+        self.base_model = DINOv2ForVideo(model_id=base_model)
+        self.base_model.eval()
+        for param in self.base_model.parameters():
+            param.requires_grad = False
+        
+        # Load the feature trajectory model
+        # NOTE: for now, let the path be hard-coded
+        self.lift = prepare_model_lift()
+        num_params(self)
     
-    # Encode a random sample
-    x = torch.randn(4, 16, 384)
-    z = lift.encode(x)
+    def forward(self, x):
+        """
+        Args:
+            x: (B, T, C, H, W)
+                Input video frames.
+        
+        Returns:
+            z: (B, D)
+                Output video embeddings.
+        """
+        
+        # Compute per-frame image embeddings: B T C H W -> B C T H W
+        x = einops.rearrange(x, "b t c h w -> b c t h w")
+        # B C T H W -> B T D'
+        with torch.no_grad():
+            features = self.base_model(x)
+        
+        # Compute the feature trajectory: B T D' -> B D
+        z = self.lift.encode(features)
+        
+        return z
+
+
+if __name__ == "__main__":
+    
+    lift = LiFT()
+    x = torch.randn(4, 16, 3, 224, 224)
+    z = lift(x)
     print("Input shape:", x.shape)
     print("Output shape:", z.shape)
+    
+    # # Load the LIFT model
+    # lift = prepare_model_lift()
+    
+    # # Encode a random sample
+    # x = torch.randn(4, 16, 384)
+    # z = lift.encode(x)
+    # print("Input shape:", x.shape)
+    # print("Output shape:", z.shape)
